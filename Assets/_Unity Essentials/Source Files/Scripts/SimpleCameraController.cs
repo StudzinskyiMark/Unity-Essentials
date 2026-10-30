@@ -1,22 +1,36 @@
-using System;
+// using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class SimpleCameraController : MonoBehaviour
 {
     public float moveSpeed = 3.0f;           // Movement speed
-    public float rotationSpeed = 100.0f;      // Rotation speed for A/D keys in degrees per second
+         
     public float mouseSensitivity = 1.0f;    // Mouse look sensitivity
 
     public InputAction moveAction;
     public InputAction lookAction;
 
-    private float rotationX = 0.0f;          // Rotation around the X axis (up and down look)
+    private float _rotationX = 0.0f;          // Rotation around the X axis (up and down look)
+    private float _rotationY = 0.0f;          // Rotation around the Y axis (left and right look)
 
     private void OnEnable()
     {
         moveAction.Enable();
         lookAction.Enable();
+
+        // CursorLockMode.
+    }
+
+    private void Start()
+    {
+        _rotationX = transform.localEulerAngles.y;
+        _rotationY = transform.localEulerAngles.x;
+
+        if (_rotationX > 180)
+        {
+            _rotationX -= 360;
+        }
     }
 
     void Update()
@@ -25,26 +39,30 @@ public class SimpleCameraController : MonoBehaviour
         
         // Movement
         float moveForward = moveInput.y * moveSpeed * Time.deltaTime;
-        // Translate only on the X-Z plane (global Y remains unchanged)
         Vector3 moveDirection = new Vector3(transform.forward.x, 0.0f, transform.forward.z).normalized;
         transform.Translate(moveDirection * moveForward, Space.World);
-
-        // Rotation
-        float turn = moveInput.x * rotationSpeed * Time.deltaTime;
-        transform.Rotate(0, turn, 0, Space.World); // Rotate around the global Y axis
-
+        
+        float moveSide = moveInput.x * moveSpeed * Time.deltaTime;
+        Vector3 sideDirection = new Vector3(transform.right.x, 0.0f, transform.right.z).normalized;
+        transform.Translate(sideDirection * moveSide, Space.World);
+        
         // Mouse Look
-        float mouseY = lookAction.ReadValue<float>() * mouseSensitivity;
+        Vector2 mouse = lookAction.ReadValue<Vector2>() * mouseSensitivity;
 
-        rotationX -= mouseY;  // Subtracting to invert the up and down look
-        rotationX = Mathf.Clamp(rotationX, -90f, 90f);  // Clamp the up and down look to avoid flipping
+        _rotationX -= mouse.y;  
+        _rotationX = Mathf.Clamp(_rotationX, -90f, 90f);
+        
+        _rotationY += mouse.x;  
+        // rotationY = Mathf.Clamp(rotationY, -180f, 180f);  
 
-        transform.localEulerAngles = new Vector3(rotationX, transform.localEulerAngles.y, 0);
+        transform.localEulerAngles = new Vector3(_rotationX, _rotationY, 0);
     }
     
     private void OnDisable()
     {
         moveAction.Disable();
         lookAction.Disable();
+
+        // CursorLockMode.Disable();
     }
 }
