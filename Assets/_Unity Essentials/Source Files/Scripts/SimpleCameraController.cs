@@ -1,4 +1,3 @@
-// using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -19,13 +18,15 @@ public class SimpleCameraController : MonoBehaviour
         moveAction.Enable();
         lookAction.Enable();
 
-        // CursorLockMode.
+        Cursor.lockState = CursorLockMode.Locked;
     }
+
+   
 
     private void Start()
     {
-        _rotationX = transform.localEulerAngles.y;
-        _rotationY = transform.localEulerAngles.x;
+        _rotationX = transform.localEulerAngles.x;
+        _rotationY = transform.localEulerAngles.y;
 
         if (_rotationX > 180)
         {
@@ -35,27 +36,30 @@ public class SimpleCameraController : MonoBehaviour
 
     void Update()
     {
-        Vector2 moveInput = moveAction.ReadValue<Vector2>();
+        if (Application.isFocused)
+        {
+            Vector2 moveInput = moveAction.ReadValue<Vector2>();
         
-        // Movement
-        float moveForward = moveInput.y * moveSpeed * Time.deltaTime;
-        Vector3 moveDirection = new Vector3(transform.forward.x, 0.0f, transform.forward.z).normalized;
-        transform.Translate(moveDirection * moveForward, Space.World);
+            // Movement
+            float moveForward = moveInput.y * moveSpeed * Time.deltaTime;
+            Vector3 moveDirection = new Vector3(transform.forward.x, 0.0f, transform.forward.z).normalized;
+            transform.Translate(moveDirection * moveForward, Space.World);
         
-        float moveSide = moveInput.x * moveSpeed * Time.deltaTime;
-        Vector3 sideDirection = new Vector3(transform.right.x, 0.0f, transform.right.z).normalized;
-        transform.Translate(sideDirection * moveSide, Space.World);
+            float moveSide = moveInput.x * moveSpeed * Time.deltaTime;
+            Vector3 sideDirection = new Vector3(transform.right.x, 0.0f, transform.right.z).normalized;
+            transform.Translate(sideDirection * moveSide, Space.World);
         
-        // Mouse Look
-        Vector2 mouse = lookAction.ReadValue<Vector2>() * mouseSensitivity;
+            // Mouse Look
+            Vector2 mouse = lookAction.ReadValue<Vector2>() * mouseSensitivity;
 
-        _rotationX -= mouse.y;  
-        _rotationX = Mathf.Clamp(_rotationX, -90f, 90f);
-        
-        _rotationY += mouse.x;  
-        // rotationY = Mathf.Clamp(rotationY, -180f, 180f);  
+            _rotationX -= mouse.y;  
+            _rotationY += mouse.x;  
+            _rotationX = Mathf.Clamp(_rotationX, -90f, 90f);
 
-        transform.localEulerAngles = new Vector3(_rotationX, _rotationY, 0);
+            transform.localEulerAngles = new Vector3(_rotationX, _rotationY, 0);
+        }
+        
+        
     }
     
     private void OnDisable()
@@ -63,6 +67,6 @@ public class SimpleCameraController : MonoBehaviour
         moveAction.Disable();
         lookAction.Disable();
 
-        // CursorLockMode.Disable();
+        Cursor.lockState = CursorLockMode.None;
     }
 }
